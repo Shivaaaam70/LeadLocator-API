@@ -1,0 +1,26 @@
+//crawlWithPaginationAndRetrices
+
+A. Pagination Support:
+
+1.Starts from the startPage and continues until maxPages.
+2.Builds URLs dynamically using pagination parameters.
+
+B.Retry Handling:
+
+1.Retries failed pages up to maxRetries.
+2.Uses exponential backoff (1s, 2s, 3s...) between retries.
+
+C.Crawl Delay:
+
+1. After each successful page crawl,
+   waits as per "delayBetweenRequestsMs" to avoid overloading the target site.
+
+D.Flow:
+
+1.Build URL using pagination config.
+
+2. Call crawlPage() to scrape jobs from that URL.
+
+3. Store results.
+
+4. Loop for next page
