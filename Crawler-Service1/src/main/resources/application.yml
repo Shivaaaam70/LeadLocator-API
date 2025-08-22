@@ -7,9 +7,11 @@ spring:
     name: CRAWLER-SERVICE
 
   datasource:
-    url: jdbc:mysql://localhost:3306/jobs_db
-    username: root
-    password: 1234
+    url: jdbc:mysql://194.24.161.189:3306/jobs_db
+    username: leadlocator
+    password: Lead@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 
   jpa:
     hibernate:
