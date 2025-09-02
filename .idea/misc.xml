@@ -13,6 +13,8 @@
         <option value="$PROJECT_DIR$/leadmanagement/pom.xml" />
         <option value="$PROJECT_DIR$/Eureka-Service1/pom.xml" />
         <option value="$PROJECT_DIR$/Service-Registry/pom.xml" />
+        <option value="$PROJECT_DIR$/../Profile-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Profile-Service/pom.xml" />
       </list>
     </option>
   </component>

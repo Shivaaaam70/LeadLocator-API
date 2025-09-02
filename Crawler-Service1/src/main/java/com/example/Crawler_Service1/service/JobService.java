@@ -1,61 +1,43 @@
 package com.example.Crawler_Service1.service;
+
 import com.example.Crawler_Service1.entity.Jobs;
 import com.example.Crawler_Service1.repository.JobsRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import org.springframework.http.HttpHeaders;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class JobService {
 
-    /**
-     * RestTemplate allows you to make HTTP requests to other APIs (like RemoteOk)
-     * Used here to fetch job data from external APIs.
-     */
     @Autowired
     private RestTemplate restTemplate;
 
-    /**
-     * ObjectMapper is from Jackson
-     * and used to parse JSON responses into Java objects.
-     */
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * Your repository (using Spring Data JPA)
-     * allows interacting with the database — for saving jobs and fetching jobs.
-     */
     @Autowired
     private JobsRepository jobsRepository;
 
-    /**
-     * Logger used for printing info and error logs,
-     * useful for debugging and monitoring.
-     */
-    private final Logger logger= LoggerFactory.getLogger(JobService.class);
+    private final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    /**
-     * This method triggers fetching jobs from external APIs
-     * and saving them into your database.
-     */
     public void fetchAndStoreAllJobs() throws JsonProcessingException {
         List<Jobs> jobs = new ArrayList<>();
         jobs.addAll(fetchFromRemoteOk());
@@ -63,56 +45,30 @@ public class JobService {
         jobs.addAll(fetchFromAdzuna());
         jobs.addAll(fetchFromRemotive());
         jobs.addAll(fetchFromUsaJobs());
-//        jobs.addAll(fetchFromArbeitsamt("Softwareentwickler", "Berlin", 1, 50));
-//        jobs.addAll(fetchFromDevITjobsUK());
-//        jobs.addAll(fetchFromWeWorkRemotely());
-//        jobs.addAll(fetchFromWorkingNomads());
-
+        jobs.addAll(fetchFromWeWorkRemotely());
 
         logger.info("Saving {} jobs to database.", jobs.size());
         jobsRepository.saveAll(jobs);
     }
 
-    /**
-     * Fetches all jobs from your database using your repository.
-     * Useful for the "get all jobs" endpoint.
-     */
     public List<Jobs> getAllJobsFromDb() {
         return jobsRepository.findAllJobs();
     }
 
-    /**
-     *Searches the database for jobs whose position contains the keyword (case-insensitive)
-     * Useful for the "search by keyword" API.
-     */
     public List<Jobs> getJobsByKeyword(String keyword) {
         return jobsRepository.findByPositionContainingIgnoreCase(keyword);
     }
 
+    // ------------------- RemoteOk -------------------
+    private List<Jobs> fetchFromRemoteOk() {
+        List<Jobs> results = new ArrayList<>();
+        try {
+            String url = "https://remoteok.com/api";
+            String json = restTemplate.getForObject(url, String.class);
+            JsonNode root = objectMapper.readTree(json);
 
-    private List<Jobs> fetchFromRemoteOk(){
-        List<Jobs> results=new ArrayList<>();
-        try{
-            /**
-             * Calls RemoteOk’s API to get job data in JSON format.
-             * Parses the JSON response using ObjectMapper.
-             */
-            String url="https://remoteok.com/api";
-            String json=restTemplate.getForObject(url, String.class);
-            JsonNode root=objectMapper.readTree(json);
-
-            /**
-             * Skips index 0 (since RemoteOk sometimes sends metadata at index 0).
-             * Loops through each job node in the JSON
-             */
             for (int i = 1; i < root.size(); i++) {
                 JsonNode node = root.get(i);
-
-                /**
-                 * Creates a new Jobs object for each job found in the JSON.
-                 * Maps JSON fields to your entity fields.
-                 * Calls parseTags() to handle the tags as a comma-separated string.
-                 */
                 Jobs job = Jobs.builder()
                         .id("remoteok-" + node.path("id").asText())
                         .site("RemoteOk")
@@ -121,27 +77,20 @@ public class JobService {
                         .location(node.path("location").asText())
                         .url(node.path("url").asText())
                         .date(node.path("date").asText())
-                        .tags(parseTags(node))
+                        .tags(parseTags(node.path("tags")))
+                        .description(node.path("description").asText(""))
                         .build();
-
-                /**
-                 * Adds each job to the results list.
-                 */
                 results.add(job);
             }
 
-            /**
-             * Logs the number of jobs fetched.
-             * Catches and logs any errors during fetching/parsing.
-             * Returns the list of jobs.
-             */
             logger.info("Fetched {} jobs from RemoteOk", results.size());
         } catch (Exception e) {
             logger.error("Error fetching from RemoteOK: {}", e.getMessage());
         }
         return results;
+    }
 
-        }
+    // ------------------- Remotive -------------------
     private List<Jobs> fetchFromRemotive() {
         List<Jobs> results = new ArrayList<>();
         try {
@@ -160,8 +109,8 @@ public class JobService {
                         .url(node.path("url").asText())
                         .date(node.path("publication_date").asText())
                         .tags(parseTags(node.path("tags")))
+                        .description(node.path("description").asText(""))
                         .build();
-
                 results.add(job);
             }
             logger.info("Fetched {} jobs from Remotive", results.size());
@@ -171,49 +120,52 @@ public class JobService {
         return results;
     }
 
-   //Fetch the jobs From Arbeitnow
-    private List<Jobs> fetchFromArbeitnow(){
-        List<Jobs> results=new ArrayList<>();
-            try {
-                String url = "https://www.arbeitnow.com/api/job-board-api";
-                String json = restTemplate.getForObject(url, String.class);
+    // ------------------- Arbeitnow -------------------
+    private List<Jobs> fetchFromArbeitnow() {
+        List<Jobs> results = new ArrayList<>();
+        try {
+            String url = "https://www.arbeitnow.com/api/job-board-api";
+            String json = restTemplate.getForObject(url, String.class);
 
-                JsonNode root = objectMapper.readTree(json);
-                ArrayNode jobsArray = (ArrayNode) root.path("data");
+            JsonNode root = objectMapper.readTree(json);
+            ArrayNode jobsArray = (ArrayNode) root.path("data");
 
-                    for (JsonNode node : jobsArray) {
-                        Jobs job = Jobs.builder()
-                                .id("Arbeitnow-" + node.path("slug").asText())
-                                .site("Arbeitnow")
-                                .position(node.path("title").asText())
-                                .company(node.path("company_name").asText())
-                                .location(node.path("location").asText())
-                                .url(node.path("url").asText())
-                                .date("")
-                                .tags("")
-                                .build();
-
-                        results.add(job);
-                    }
-                } catch(Exception e){
-                    logger.error("Error fetching from Arbeitnow: {}", e.getMessage());
-                }
-            return results;
+            for (JsonNode node : jobsArray) {
+                Jobs job = Jobs.builder()
+                        .id("arbeitnow-" + node.path("slug").asText())
+                        .site("Arbeitnow")
+                        .position(node.path("title").asText())
+                        .company(node.path("company_name").asText())
+                        .location(node.path("location").asText())
+                        .url(node.path("url").asText())
+                        .date("")
+                        .tags("")
+                        .description(node.path("description").asText(""))
+                        .build();
+                results.add(job);
+            }
+            logger.info("Fetched {} jobs from Arbeitnow", results.size());
+        } catch (Exception e) {
+            logger.error("Error fetching from Arbeitnow: {}", e.getMessage());
+        }
+        return results;
     }
-    private List<Jobs> fetchFromAdzuna(){
-        List<Jobs> results=new ArrayList<>();
-        try{
-            String appId="72b713aa";
-            String appKey="a20e86c19a5a03c1c8bea22aa07c3a2c";
-            String country="in";
+
+    // ------------------- Adzuna -------------------
+    private List<Jobs> fetchFromAdzuna() {
+        List<Jobs> results = new ArrayList<>();
+        try {
+            String appId = "72b713aa";
+            String appKey = "a20e86c19a5a03c1c8bea22aa07c3a2c";
+            String country = "in";
 
             String url = String.format(
                     "https://api.adzuna.com/v1/api/jobs/%s/search/1?app_id=%s&app_key=%s&results_per_page=20&content-type=application/json",
                     country, appId, appKey
             );
-            String json=restTemplate.getForObject(url,String.class);
-            JsonNode rootNode=objectMapper.readTree(json);
-            ArrayNode jobsArray=(ArrayNode) rootNode.path("results");
+            String json = restTemplate.getForObject(url, String.class);
+            JsonNode rootNode = objectMapper.readTree(json);
+            ArrayNode jobsArray = (ArrayNode) rootNode.path("results");
 
             for (JsonNode node : jobsArray) {
                 Jobs job = Jobs.builder()
@@ -224,46 +176,36 @@ public class JobService {
                         .location(node.path("location").path("display_name").asText())
                         .url(node.path("redirect_url").asText())
                         .date(node.path("created").asText())
-                        .tags("")  // Adzuna does not provide tags directly
+                        .tags("")
+                        .description(node.path("description").asText(""))
                         .build();
-
                 results.add(job);
             }
-
             logger.info("Fetched {} jobs from Adzuna", results.size());
         } catch (Exception e) {
             logger.error("Error fetching from Adzuna: {}", e.getMessage());
         }
         return results;
-
     }
 
+    // ------------------- USAJobs -------------------
     private List<Jobs> fetchFromUsaJobs() {
         List<Jobs> results = new ArrayList<>();
         try {
             String url = "https://data.usajobs.gov/api/search?ResultsPerPage=20&Keyword=software";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("User-Agent", "thakreshivam121@gmail.com"); // Replace with your email
-            headers.set("Authorization-Key", "VYL4IstH31rQr5O4P7OzYbkMCff2W7zNvQuHvrqXiNs=");   // Replace with your key
+            headers.set("User-Agent", "thakreshivam121@gmail.com");
+            headers.set("Authorization-Key", "VYL4IstH31rQr5O4P7OzYbkMCff2W7zNvQuHvrqXiNs=");
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    String.class
-            );
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
             JsonNode root = objectMapper.readTree(response.getBody());
-            ArrayNode jobsArray = (ArrayNode) root
-                    .path("SearchResult")
-                    .path("SearchResultItems");
+            ArrayNode jobsArray = (ArrayNode) root.path("SearchResult").path("SearchResultItems");
 
             for (JsonNode item : jobsArray) {
                 JsonNode node = item.path("MatchedObjectDescriptor");
-
                 Jobs job = Jobs.builder()
                         .id("usajobs-" + node.path("PositionID").asText())
                         .site("USAJOBS")
@@ -272,114 +214,79 @@ public class JobService {
                         .location(node.path("PositionLocationDisplay").asText())
                         .url(node.path("PositionURI").asText())
                         .date(node.path("PublicationStartDate").asText())
-                        .tags("") // USAJOBS doesn't provide tags directly
+                        .tags("")
+                        .description(node.path("UserArea").path("Details").path("JobSummary").asText(""))
                         .build();
-
                 results.add(job);
             }
-
             logger.info("Fetched {} jobs from USAJOBS", results.size());
         } catch (Exception e) {
             logger.error("Error fetching from USAJOBS: {}", e.getMessage());
         }
         return results;
     }
-//
-//    private List<Jobs> fetchFromArbeitsamt(String was, String wo, int page, int size) {
-//        List<Jobs> results = new ArrayList<>();
-//        try {
-//            String url = String.format(
-//                    "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs?was=%s&wo=%s&page=%d&size=%d",
-//                    URLEncoder.encode(was, StandardCharsets.UTF_8),
-//                    URLEncoder.encode(wo, StandardCharsets.UTF_8),
-//                    page, size
-//            );
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.set("X-API-Key", "jobboerse-jobsuche");
-//            HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//            ResponseEntity<String> response = restTemplate.exchange(
-//                    url, HttpMethod.GET, entity, String.class
-//            );
-//
-//            JsonNode root = objectMapper.readTree(response.getBody());
-//            ArrayNode offers = (ArrayNode) root.path("stellenangebote");
-//
-//            for (JsonNode offer : offers) {
-//                Jobs job = Jobs.builder()
-//                        .id("arbeitsamt-" + offer.path("kennziffer").asText())
-//                        .site("Arbeitsagentur")
-//                        .position(offer.path("stellenbezeichnung").asText(""))
-//                        .company(offer.path("arbeitgeber").path("name").asText(""))
-//                        .location(offer.path("arbeitsort").path(0).path("ort").asText(""))
-//                        .url(offer.path("detailLink").asText(""))
-//                        .date(offer.path("veroeffentlichungsdatum").asText(""))
-//                        .tags("") // No tags provided by API
-//                        .build();
-//
-//                results.add(job);
-//            }
-//
-//            logger.info("Fetched {} jobs from Arbeitsagentur", results.size());
-//        } catch (Exception e) {
-//            logger.error("Error fetching from Arbeitsagentur: {}", e.getMessage());
-//        }
-//        return results;
-//    }
-//
-//    private List<Jobs> fetchFromDevITjobsUK() {
-//        List<Jobs> results = new ArrayList<>();
-//        try {
-//            String url = "https://devitjobs.uk/graphql"; // Verify actual endpoint
-//
-//            String query = "{ jobs { id title location company { name } url postedDate } }";
-//            ObjectNode payload = objectMapper.createObjectNode();
-//            payload.put("query", query);
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.set("Content-Type", "application/json");
-//            HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
-//
-//            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-//            JsonNode root = objectMapper.readTree(response.getBody());
-//            ArrayNode jobsArray = (ArrayNode) root.path("data").path("jobs");
-//
-//            for (JsonNode node : jobsArray) {
-//                Jobs job = Jobs.builder()
-//                        .id("devitjobs-" + node.path("id").asText())
-//                        .site("DevITjobs UK")
-//                        .position(node.path("title").asText())
-//                        .company(node.path("company").path("name").asText())
-//                        .location(node.path("location").asText())
-//                        .url(node.path("url").asText())
-//                        .date(node.path("postedDate").asText())
-//                        .tags("")
-//                        .build();
-//
-//                results.add(job);
-//            }
-//            logger.info("Fetched {} jobs from DevITjobs UK", results.size());
-//        } catch (Exception e) {
-//            logger.error("Error fetching from DevITjobs UK: {}", e.getMessage());
-//        }
-//        return results;
-//    }
 
-    /**
-     * Converts the tags (from JSON array) into a comma-separated string for storage.
-     * If no tags, returns an empty string.
-     */
+    private List<Jobs> fetchFromWeWorkRemotely() {
+        List<Jobs> results = new ArrayList<>();
+        try {
+            String url = "https://weworkremotely.com/remote-jobs.rss";
+
+            // Fetch RSS feed (XML mode)
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0")
+                    .ignoreContentType(true) // important for XML
+                    .timeout(10000)
+                    .get();
+
+            Elements items = doc.select("item");
+
+            for (Element item : items) {
+                String title = item.select("title").first() != null ? item.select("title").first().text() : "";
+                String link = item.select("link").first() != null ? item.select("link").first().text() : "";
+                String description = item.select("description").first() != null ? Jsoup.parse(item.select("description").first().text()).text() : "";
+                String pubDate = item.select("pubDate").first() != null ? item.select("pubDate").first().text() : "";
+
+                // WWR titles are like: "Company: Job Title"
+                String company = "";
+                String position = title;
+                if (title.contains(":")) {
+                    String[] parts = title.split(":", 2);
+                    company = parts[0].trim();
+                    position = parts[1].trim();
+                }
+
+                Jobs job = Jobs.builder()
+                        .id("weworkremotely-" + link.hashCode())
+                        .site("WeWorkRemotely")
+                        .position(position)
+                        .company(company)
+                        .location("Remote")
+                        .url(link)
+                        .date(pubDate)
+                        .tags("")
+                        .description(description)
+                        .build();
+
+                results.add(job);
+            }
+
+            logger.info("Fetched {} jobs from WeWorkRemotely", results.size());
+        } catch (Exception e) {
+            logger.error("Error fetching from WeWorkRemotely", e);
+        }
+        return results;
+    }
+
+
+    // ------------------- Tag Parser -------------------
     private String parseTags(JsonNode node) {
         try {
-            ArrayNode tagsNode = (ArrayNode) node.path("tags");
-            if (tagsNode != null && tagsNode.isArray() && tagsNode.size() > 0) {
-                return String.join(",", objectMapper.convertValue(tagsNode, List.class));
+            if (node.isArray()) {
+                return StreamSupport.stream(node.spliterator(), false)
+                        .map(JsonNode::asText)
+                        .collect(Collectors.joining(","));
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return "";
     }
-    }
-
-
+}

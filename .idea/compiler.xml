@@ -8,18 +8,18 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Api-Gateway" />
-        <module name="Auth-Service" />
         <module name="Crawler-Service1" />
+        <module name="Auth-Service" />
         <module name="Service-Registry" />
       </profile>
-      <profile name="Annotation profile for Onboard-Service" enabled="true">
+      <profile name="Annotation profile for Profile-Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="Onboard-Service" />
+        <module name="Profile-Service" />
       </profile>
       <profile name="Annotation profile for leadmanagement" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -30,6 +30,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="leadmanagement" />
+        <module name="Onboard-Service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -45,6 +46,7 @@
       <module name="Crawler-Service1" options="-parameters" />
       <module name="Eureka-Service" options="-parameters" />
       <module name="Onboard-Service" options="-parameters" />
+      <module name="Profile-Service" options="-parameters" />
       <module name="Service-Registry" options="-parameters" />
       <module name="leadmanagement" options="-parameters" />
     </option>

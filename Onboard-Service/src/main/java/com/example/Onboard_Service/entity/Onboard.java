@@ -25,6 +25,7 @@ public class Onboard {
     private String field;
     private String onboarded_By;
     private int experience;
+    private String company_name;
     private String skills;
 
 }

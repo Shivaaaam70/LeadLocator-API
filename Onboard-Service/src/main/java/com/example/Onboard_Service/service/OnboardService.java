@@ -34,6 +34,7 @@ public class OnboardService {
         existingOnboard.setWorkplaceType(updatedOnboard.getWorkplaceType());
         existingOnboard.setEmploymentType(updatedOnboard.getEmploymentType());
         existingOnboard.setOnboarded_By(updatedOnboard.getOnboarded_By());
+        existingOnboard.setCompany_name(updatedOnboard.getCompany_name());
         existingOnboard.setExperience(updatedOnboard.getExperience());
         existingOnboard.setSkills(updatedOnboard.getSkills());
 

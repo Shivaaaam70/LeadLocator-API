@@ -31,6 +31,7 @@ public class UserController {
     private JwtUtil jwtUtil;
 
 
+    //POST: /auth/register
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
         userService.register(user);

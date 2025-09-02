@@ -26,7 +26,10 @@ public class Jobs {
     private String location;
 
     @Column(length = 5000)
-    private String tags;  //CSV tags
+    private String tags;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
     
     private String date;
 

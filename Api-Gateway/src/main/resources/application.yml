@@ -16,7 +16,6 @@ spring:
               predicates:
                 - Path=/jobs/**
 
-
             - id: AUTH-SERVICE
               uri: lb://AUTH-SERVICE
               predicates:
@@ -32,6 +31,11 @@ spring:
               predicates:
                 - Path=/api/leads/**
 
+            - id: PROFILE-SERVICE
+              uri: lb://PROFILE-SERVICE
+              predicates:
+                - Path=/profile/**
+
 
       cloud:
         config:
@@ -43,5 +47,5 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://194.24.161.189:8761/eureka
 
