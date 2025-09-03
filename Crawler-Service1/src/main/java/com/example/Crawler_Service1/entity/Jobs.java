@@ -28,7 +28,7 @@ public class Jobs {
     @Column(length = 5000)
     private String tags;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String description;
     
     private String date;

@@ -12,14 +12,15 @@
         <module name="Auth-Service" />
         <module name="Service-Registry" />
       </profile>
-      <profile name="Annotation profile for Profile-Service" enabled="true">
+      <profile name="Annotation profile for Onboard-Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="Profile-Service" />
+        <module name="Onboard-Service" />
       </profile>
       <profile name="Annotation profile for leadmanagement" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -27,10 +28,9 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="leadmanagement" />
-        <module name="Onboard-Service" />
+        <module name="Profile-Service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

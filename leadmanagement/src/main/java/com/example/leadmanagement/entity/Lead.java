@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "leads", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -18,8 +19,8 @@ import java.time.LocalDateTime;
 public class Lead {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(length = 36, updatable = false,nullable = false)
+    private String id;
 
     @NotBlank(message = "Name is required")
     @Size(min=2 , message = "Name must have at least 2 character")

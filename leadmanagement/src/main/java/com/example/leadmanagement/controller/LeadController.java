@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/leads")
@@ -44,7 +45,7 @@ public class LeadController {
 
     // Read by Id
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>>getLeadById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>>getLeadById(@PathVariable String id) {
         Lead lead = leadService.getLeadById(id);
 
         Map<String , Object> response = Map.of(
@@ -57,17 +58,19 @@ public class LeadController {
 
     // Update
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String,Object>>updateLead(@PathVariable Long id, @RequestBody Lead leadDeatils) {
-        leadService.deleteLead(id);
+    public ResponseEntity<Map<String,Object>>updateLead(@PathVariable String id, @RequestBody Lead leadDetails) {
+
+        Lead updatedLead=leadService.updateLead(id, leadDetails);
+
         return ResponseEntity.ok(Map.of(
                 "message", "Lead updated successfully",
-                "data", leadDeatils
+                "data", updatedLead
         ));
     }
 
     // Delete
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String,Object>>deleteLead(@PathVariable Long id) {
+    public ResponseEntity<Map<String,Object>>deleteLead(@PathVariable String id) {
         leadService.deleteLead(id);
         return ResponseEntity.ok(Map.of(
                 "message", "Lead deleted successfully"
@@ -84,7 +87,7 @@ public class LeadController {
         );
 
         Map<String , Object> response = Map.of(
-                "message" , "Lead count retrived successfully",
+                "message" , "Lead count retrieved successfully",
                 "data", data
         );
         return ResponseEntity.ok(response);
