@@ -27,5 +27,6 @@ public class Onboard {
     private int experience;
     private String company_name;
     private String skills;
+    private String status;
 
 }

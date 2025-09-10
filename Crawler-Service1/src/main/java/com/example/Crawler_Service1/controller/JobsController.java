@@ -22,21 +22,27 @@ public class JobsController {
     private static final Logger logger= LoggerFactory.getLogger(JobsController.class);
 
     @GetMapping("/all")
-   public List<Jobs> getAllJobs(){
-       logger.info("GET/jobs/all");
-      return jobService.getAllJobsFromDb();
-   }
+    public List<Jobs> getAllJobs(){
+        logger.info("GET/jobs/all");
+        return jobService.getAllJobsFromDb();
+    }
 
-   @GetMapping("/search")
-   public List<Jobs> searchForJobs(@RequestParam @NotBlank String keyword){
+    @GetMapping("/search")
+    public List<Jobs> searchForJobs(@RequestParam @NotBlank String keyword){
         logger.info("GET/jobs/search keyword={}", keyword);
         return jobService.getJobsByKeyword(keyword);
-   }
+    }
 
-   @PostMapping("/refresh")
-   public ResponseEntity<String> refreshJobs() throws JsonProcessingException {
+    @PostMapping("/refresh")
+    public ResponseEntity<String> refreshJobs() throws JsonProcessingException {
         logger.info("POST/jobs/refresh called");
         jobService.fetchAndStoreAllJobs();
         return ResponseEntity.ok("Jobs refreshed successfully!!");
-   }
+    }
+
+    @PostMapping("/cleanup")
+    public ResponseEntity<String> cleanupJobs() {
+        jobService.removeOldJobs();
+        return ResponseEntity.ok("Old jobs cleanup executed");
+    }
 }

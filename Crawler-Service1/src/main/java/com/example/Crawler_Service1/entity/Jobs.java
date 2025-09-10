@@ -20,6 +20,8 @@ public class Jobs {
     private String site;
     private String position;
     private String company;
+
+    @Column(name = "url", length = 2000)
     private String url;
 
     @Column(length = 500)
@@ -32,5 +34,7 @@ public class Jobs {
     private String description;
     
     private String date;
+
+    private boolean active = true;
 
 }

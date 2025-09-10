@@ -9,13 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -48,11 +46,16 @@ public class UserController {
 
         String token = jwtUtil.generateToken(request.getEmail());
         User user = userService.findByEmail(request.getEmail());
+        String randomId=UUID.randomUUID().toString();
+        user.setUserId(randomId);
 
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
         data.put("email", user.getEmail());
         data.put("role", user.getRole());
+        data.put("first_name", user.getFirst_name());
+        data.put("last_name", user.getLast_name());
+        data.put("userId", user.getUserId());
 
         return ResponseEntity.ok(
                 Map.of(
@@ -88,6 +91,7 @@ public class UserController {
                 "message", "Password reset successful"
         ));
     }
+
 
 //    @PostMapping("/login")
 //    public ResponseEntity<ApiResponse<String>> login(@RequestBody AuthRequest request) {
