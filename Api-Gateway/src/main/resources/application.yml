@@ -5,41 +5,46 @@ server:
 spring:
   application:
     name: API-GATEWAY
-
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            - id: CRAWLER-SERVICE1
-              uri: lb://CRAWLER-SERVICE1
-              predicates:
-                - Path=/jobs/**
-
-            - id: AUTH-SERVICE
-              uri: lb://AUTH-SERVICE
-              predicates:
-                - Path=/auth/**
-
-            - id: ONBOARD-SERVICE
-              uri: lb://ONBOARD-SERVICE
-              predicates:
-                - Path=/onboard/**
-
-            - id: LEADMANAGEMENT
-              uri: lb://LEADMANAGEMENT
-              predicates:
-                - Path=/api/leads/**
-
-            - id: PROFILE-SERVICE
-              uri: lb://PROFILE-SERVICE
-              predicates:
-                - Path=/profile/**
-
-
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: CRAWLER-SERVICE1
+          uri: lb://CRAWLER-SERVICE1
+          predicates:
+            - Path=/jobs/**
+        - id: AUTH-SERVICE
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+        - id: ONBOARD-SERVICE
+          uri: lb://ONBOARD-SERVICE
+          predicates:
+            - Path=/onboard/**
+        - id: LEADMANAGEMENT
+          uri: lb://LEADMANAGEMENT
+          predicates:
+            - Path=/api/leads/**
+        - id: PROFILE-SERVICE
+          uri: lb://PROFILE-SERVICE
+          predicates:
+            - Path=/profile/**
       cloud:
         config:
           enabled: false
+
 eureka:
   instance:
     prefer-ip-address: true
@@ -48,4 +53,3 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://194.24.161.189:8761/eureka
-
