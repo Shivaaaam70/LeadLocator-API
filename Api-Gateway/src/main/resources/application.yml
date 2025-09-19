@@ -1,55 +1,51 @@
 server:
   port: 8080
+  # API Gateway runs on this port
   address: 0.0.0.0
 
 spring:
   application:
-    name: API-GATEWAY
+    name: api-gateway
+
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
-            maxAge: 3600
-      routes:
-        - id: CRAWLER-SERVICE1
-          uri: lb://CRAWLER-SERVICE1
-          predicates:
-            - Path=/jobs/**
-        - id: AUTH-SERVICE
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/auth/**
-        - id: ONBOARD-SERVICE
-          uri: lb://ONBOARD-SERVICE
-          predicates:
-            - Path=/onboard/**
-        - id: LEADMANAGEMENT
-          uri: lb://LEADMANAGEMENT
-          predicates:
-            - Path=/api/leads/**
-        - id: PROFILE-SERVICE
-          uri: lb://PROFILE-SERVICE
-          predicates:
-            - Path=/profile/**
-      cloud:
-        config:
-          enabled: false
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: lb://AUTH-SERVICE
+              predicates:
+                - Path=/auth/**
+            - id: client-service
+              uri: lb://CLIENT-SERVICE
+              predicates:
+                - Path=/client/**
+            - id: onboard-service
+              uri: lb://ONBOARD-SERVICE
+              predicates:
+                - Path=/onboard/**
+            - id: crawler-service
+              uri: lb://CRAWLER-SERVICE
+              predicates:
+                - Path=/crawler/**
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns:
+                  - "https://leadslocator.orangebits.click/"   # your frontend
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+                maxAge: 3600
 
 eureka:
-  instance:
-    prefer-ip-address: true
   client:
-    fetch-registry: true
-    register-with-eureka: true
     service-url:
-      defaultZone: http://194.24.161.189:8761/eureka
+      defaultZone: http://194.24.161.189:8761/eureka/
+ 
