@@ -1,5 +1,6 @@
 package com.ect.Auth_Service.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,12 @@ public class User {
     @Id
     private String email;
     private String userId;
-    private String first_name;
-    private String last_name;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
     private String password;
     private String role;
 }

@@ -32,6 +32,9 @@ public class UserController {
     //POST: /auth/register
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
+        if (user.getRole() == null) {
+            user.setRole("USER");
+        }
         userService.register(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
@@ -40,29 +43,35 @@ public class UserController {
     //POST: /auth/login
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        String token = jwtUtil.generateToken(request.getEmail());
-        User user = userService.findByEmail(request.getEmail());
-        String randomId=UUID.randomUUID().toString();
-        user.setUserId(randomId);
+            String token = jwtUtil.generateToken(request.getEmail());
+            User user = userService.findByEmail(request.getEmail());
+            String randomId = UUID.randomUUID().toString();
+            user.setUserId(randomId);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("token", token);
-        data.put("email", user.getEmail());
-        data.put("role", user.getRole());
-        data.put("first_name", user.getFirst_name());
-        data.put("last_name", user.getLast_name());
-        data.put("userId", user.getUserId());
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("email", user.getEmail());
+            data.put("role", user.getRole());
+            data.put("first_name", user.getFirstName());
+            data.put("last_name", user.getLastName());
+            data.put("userId", user.getUserId());
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "message", "Login successful",
-                        "data", data
-                )
-        );
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message", "Login successful",
+                            "data", data
+                    )
+            );
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "Invalid email or password");
+            return ResponseEntity.status(403).body(error);
+        }
     }
 
 
@@ -91,35 +100,4 @@ public class UserController {
                 "message", "Password reset successful"
         ));
     }
-
-
-//    @PostMapping("/login")
-//    public ResponseEntity<ApiResponse<String>> login(@RequestBody AuthRequest request) {
-//        Authentication auth = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-//        String token = jwtUtil.generateToken(auth.getName());
-//        return ResponseEntity.ok(new ApiResponse<>("Login successful", token));
-//    }
-
-//    @PostMapping("/login")
-//    public ResponseEntity<Map<String,String>> login(@RequestBody AuthRequest request){
-//        Authentication auth=authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
-//        String token= jwtUtil.generateToken(auth.getName());
-//        return ResponseEntity.ok(Map.of("token",token));
-//    }
-
-
-
-
-// @PostMapping("/register")
-//    public ResponseEntity<String> registerUser(@RequestBody User user){
-//        User user1=userService.register(user);
-//        return ResponseEntity.ok("User Registered Successfully!!");
-//    }
-//    @PostMapping("/register")
-//    public ResponseEntity<ApiResponse<User>> register(@RequestBody User user) {
-//        User saved = userService.register(user);
-//        return ResponseEntity.ok(new ApiResponse<>("User signed up successfully", saved));
-//    }
 }

@@ -1,21 +1,17 @@
 package com.ect.Auth_Service.service;
 
-import com.ect.Auth_Service.entity.PasswordResetToken;
 import com.ect.Auth_Service.entity.User;
 import com.ect.Auth_Service.repo.PasswordResetTokenRepository;
 import com.ect.Auth_Service.repo.UserRepository;
 import com.ect.Auth_Service.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 @Service
 public class UserService implements UserDetailsService {
@@ -47,10 +43,6 @@ public class UserService implements UserDetailsService {
         );
     }
 
-//    public User register(User user){
-//        user.setPassword(new PasswordEncoderConfig().encode(user.getPassword()));
-//        return userRepository.save(user);
-//    }
     public void register(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
