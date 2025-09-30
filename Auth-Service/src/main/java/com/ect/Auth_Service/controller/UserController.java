@@ -17,12 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = {
-        "https://leadslocator.orangebits.click",
-        "http://localhost:*",
-        "http://127.0.0.1:*",
-        "http://194.24.161.189:*"
-})
 @RequestMapping("/auth")
 public class UserController {
 
