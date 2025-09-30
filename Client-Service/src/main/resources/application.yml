@@ -1,6 +1,6 @@
 server:
   port: 8087
-
+  address: 0.0.0.0
 
 spring:
   application:
@@ -27,5 +27,5 @@ eureka:
     register-with-eureka: true
     service-registry: true
     service-url:
-      defaultZone: http://194.24.161.189:3306:8761/eureka
+      defaultZone: http://194.24.161.189:8761/eureka
 

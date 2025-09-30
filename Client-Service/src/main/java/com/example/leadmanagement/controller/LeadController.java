@@ -1,22 +1,37 @@
 package com.example.leadmanagement.controller;
 
+import com.example.leadmanagement.service.ExcelExport;
 import com.example.leadmanagement.entity.Lead;
 import com.example.leadmanagement.service.LeadService;
 import jakarta.validation.Valid;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = {
+        "https://leadslocator.orangebits.click",
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://194.24.161.189:*"
+})
 @RequestMapping("api/leads")
 public class LeadController {
 
     private final LeadService leadService;
 
-    public LeadController(LeadService leadService) {
+    private final ExcelExport excelExport;
+
+    public LeadController(LeadService leadService, ExcelExport excelExport) {
         this.leadService = leadService;
+        this.excelExport = excelExport;
     }
 
     // Create
@@ -90,6 +105,19 @@ public class LeadController {
                 "data", data
         );
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<InputStreamResource> exportLeadsToExcel() {
+        List<Lead> leads = leadService.getAllLead();
+        ByteArrayInputStream in = excelExport.exportLeadsToExcel(leads);
+
+        Map<String,Object> response=Map.of("Excel sheet downloaded",leads);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=leads.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 
 

@@ -8,23 +8,21 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
-
 
 @Service
 public class UserService implements UserDetailsService {
 
-
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
     private final JwtUtil jwtUtil;
 
     public UserService(
             UserRepository userRepository,
-            BCryptPasswordEncoder passwordEncoder,
+            PasswordEncoder passwordEncoder,
             PasswordResetTokenRepository tokenRepository,
             JwtUtil jwtUtil) {
         this.userRepository = userRepository;
@@ -35,7 +33,8 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user=userRepository.findById(email).orElseThrow(()->new UsernameNotFoundException("User not found with id"));
+        User user = userRepository.findById(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id"));
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
@@ -57,7 +56,6 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // Generate a reset JWT token valid for 15 mins
         return jwtUtil.generateResetToken(email);
     }
 
@@ -78,5 +76,4 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
-
 }

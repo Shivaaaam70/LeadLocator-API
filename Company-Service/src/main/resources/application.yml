@@ -1,0 +1,36 @@
+server:
+  port: 8088
+
+spring:
+
+  application:
+    name: COMPANY-SERVICE
+
+  datasource:
+    url: jdbc:mysql://194.24.161.189:3306/jobs_db
+    username: leadlocator
+    password: Lead@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  codec:
+    max-in-memory-size: 16MB
+
+yc:
+  api:
+    all: https://yc-oss.github.io/api/companies/all.json
+    top: https://yc-oss.github.io/api/companies/top.json
+    hiring: https://yc-oss.github.io/api/companies/hiring.json
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://194.24.161.189:8761/eureka/

@@ -1,6 +1,5 @@
 server:
   port: 8080
-  # API Gateway runs on this port
   address: 0.0.0.0
 
 spring:
@@ -16,40 +15,90 @@ spring:
               uri: lb://AUTH-SERVICE
               predicates:
                 - Path=/auth/**
+              filters:
+                - StripPrefix=0
+
             - id: LEADMANAGEMENT
               uri: lb://LEADMANAGEMENT
               predicates:
                 - Path=/api/leads/**
+              filters:
+                - StripPrefix=0
+
             - id: ONBOARD-SERVICE
               uri: lb://ONBOARD-SERVICE
               predicates:
                 - Path=/onboard/**
+              filters:
+                - StripPrefix=0
+
             - id: CRAWLER-SERVICE
-              uri: lb://CRAWLER-SERVICE
+              uri: lb://CRAWLER-SERVICE1
               predicates:
                 - Path=/jobs/**
+              filters:
+                - StripPrefix=0
+
+            - id: COMPANY-SERVICE
+              uri: lb://COMPANY-SERVICE
+              predicates:
+                - Path=/api/companies/**
+              filters:
+                - StripPrefix=0
+
             - id: PROFILE-SERVICE
               uri: lb://PROFILE-SERVICE
               predicates:
                 - Path=/profile/**
+              filters:
+                - StripPrefix=0
 
           globalcors:
+            add-to-simple-url-handler-mapping: true
             cors-configurations:
               '[/**]':
                 allowedOriginPatterns:
-                  - "https://leadslocator.orangebits.click/"   # your frontend
+                  - "https://leadslocator.orangebits.click"
+                  - "http://localhost:*"
                 allowedMethods:
                   - GET
                   - POST
                   - PUT
                   - DELETE
                   - OPTIONS
+                  - PATCH
                 allowedHeaders: "*"
                 allowCredentials: true
                 maxAge: 3600
 
+    loadbalancer:
+      health-check:
+        interval: 10s
+      retry:
+        enabled: true
+
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
- 
+      defaultZone: http://194.24.161.189:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: 194.24.161.189
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      access: read-only
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.netflix.discovery: INFO
+    org.springframework.web.cors: DEBUG
+    org.springframework.security.web.FilterChainProxy: DEBUG

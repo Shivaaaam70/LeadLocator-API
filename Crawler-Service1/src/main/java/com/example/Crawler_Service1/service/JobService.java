@@ -334,6 +334,10 @@ public class JobService {
         return results;
     }
 
+    public List<Jobs> getAllJobs() {
+        return jobsRepository.findAllJobs();
+    }
+
 
     // ========== Generic Fetcher ==========
 

@@ -1,23 +1,37 @@
 package com.example.Crawler_Service1.controller;
 
 import com.example.Crawler_Service1.entity.Jobs;
+import com.example.Crawler_Service1.service.ExportExcelService;
 import com.example.Crawler_Service1.service.JobService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = {
+        "https://leadslocator.orangebits.click",
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://194.24.161.189:*"
+})
 @RequestMapping("/jobs")
 public class JobsController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private ExportExcelService exportExcelService;
 
     private static final Logger logger= LoggerFactory.getLogger(JobsController.class);
 
@@ -44,5 +58,16 @@ public class JobsController {
     public ResponseEntity<String> cleanupJobs() {
         jobService.removeOldJobs();
         return ResponseEntity.ok("Old jobs cleanup executed");
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<InputStreamResource> exportJobs() {
+        List<Jobs> jobs = jobService.getAllJobs();
+        ByteArrayInputStream in = exportExcelService.exportJobsToExcel(jobs);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=jobs.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 }

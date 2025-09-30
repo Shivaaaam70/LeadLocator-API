@@ -5,17 +5,24 @@ import com.ect.Auth_Service.entity.User;
 import com.ect.Auth_Service.service.UserService;
 import com.ect.Auth_Service.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = {
+        "https://leadslocator.orangebits.click",
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://194.24.161.189:*"
+})
 @RequestMapping("/auth")
 public class UserController {
 
@@ -28,8 +35,7 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-
-    //POST: /auth/register
+    // POST: /auth/register
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
         if (user.getRole() == null) {
@@ -39,41 +45,46 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
-
-    //POST: /auth/login
+    // POST: /auth/login
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-
-            String token = jwtUtil.generateToken(request.getEmail());
-            User user = userService.findByEmail(request.getEmail());
-            String randomId = UUID.randomUUID().toString();
-            user.setUserId(randomId);
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
-            data.put("email", user.getEmail());
-            data.put("role", user.getRole());
-            data.put("first_name", user.getFirstName());
-            data.put("last_name", user.getLastName());
-            data.put("userId", user.getUserId());
-
-            return ResponseEntity.ok(
-                    Map.of(
-                            "message", "Login successful",
-                            "data", data
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
                     )
             );
+
+            // Generate JWT
+            String token = jwtUtil.generateToken(request.getEmail());
+
+            // Fetch user details
+            User user = userService.findByEmail(request.getEmail());
+
+            // Build user response object
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("userId", user.getUserId());
+            userData.put("email", user.getEmail());
+            userData.put("role", user.getRole());
+            userData.put("firstName", user.getFirstName());
+            userData.put("lastName", user.getLastName());
+
+            // Final response
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", userData);
+
+            return ResponseEntity.ok(response);
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid email or password"));
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("message", "Invalid email or password");
-            return ResponseEntity.status(403).body(error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Something went wrong"));
         }
     }
-
 
     // POST /auth/forgot-password
     @PostMapping("/forgot-password")
