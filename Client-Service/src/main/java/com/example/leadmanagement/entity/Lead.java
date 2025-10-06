@@ -33,11 +33,15 @@ public class Lead {
 
     private String location;
 
-    private String description;
+    private String note;
 
     private String requirement;
 
+    private String status;
+
     private String broughtBy;
+
+    private String contact;
 
     @CreationTimestamp
     @Column(updatable = false)

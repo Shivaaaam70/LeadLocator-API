@@ -18,8 +18,9 @@ public class ExportExcelService {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Jobs");
 
+            // Add headers including Description
             Row header = sheet.createRow(0);
-            String[] headers = {"ID", "Position", "Company", "Location", "Tags", "Date", "Active"};
+            String[] headers = {"ID", "Position", "Company", "Description", "Location", "Tags", "Date", "Active"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = header.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -30,19 +31,21 @@ public class ExportExcelService {
                 cell.setCellStyle(style);
             }
 
+            // Add job data
             int rowIdx = 1;
             for (Jobs job : jobs) {
                 Row row = sheet.createRow(rowIdx++);
-
                 row.createCell(0).setCellValue(nullSafeToString(job.getId()));
-                row.createCell(1).setCellValue(nullSafeToString(job.getPosition())); // change if name differs
-                row.createCell(2).setCellValue(nullSafeToString(job.getCompany()));  // change if not present
-                row.createCell(3).setCellValue(nullSafeToString(job.getLocation()));
-                row.createCell(4).setCellValue(nullSafeToString(job.getTags()));
-                row.createCell(5).setCellValue(nullSafeToString(job.getDate()));
-                row.createCell(6).setCellValue(job.isActive());
+                row.createCell(1).setCellValue(nullSafeToString(job.getPosition()));
+                row.createCell(2).setCellValue(nullSafeToString(job.getCompany()));
+                row.createCell(3).setCellValue(nullSafeToString(job.getDescription())); // Added description
+                row.createCell(4).setCellValue(nullSafeToString(job.getLocation()));
+                row.createCell(5).setCellValue(nullSafeToString(job.getTags()));
+                row.createCell(6).setCellValue(nullSafeToString(job.getDate()));
+                row.createCell(7).setCellValue(job.isActive());
             }
 
+            // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -54,13 +57,13 @@ public class ExportExcelService {
         }
     }
 
-
     public void writeJobsToFile(List<Jobs> jobs, String filePath) {
         try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fos = new FileOutputStream(filePath)) {
             Sheet sheet = workbook.createSheet("Jobs");
 
+            // Add headers including Description
             Row header = sheet.createRow(0);
-            String[] headers = {"ID", "Position", "Company", "Location", "Tags", "Date", "Active"};
+            String[] headers = {"ID", "Position", "Company", "Description", "Location", "Tags", "Date", "Active"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = header.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -71,19 +74,24 @@ public class ExportExcelService {
                 cell.setCellStyle(style);
             }
 
+            // Add job data
             int rowIdx = 1;
             for (Jobs job : jobs) {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(nullSafeToString(job.getId()));
                 row.createCell(1).setCellValue(nullSafeToString(job.getPosition()));
                 row.createCell(2).setCellValue(nullSafeToString(job.getCompany()));
-                row.createCell(3).setCellValue(nullSafeToString(job.getLocation()));
-                row.createCell(4).setCellValue(nullSafeToString(job.getTags()));
-                row.createCell(5).setCellValue(nullSafeToString(job.getDate()));
-                row.createCell(6).setCellValue(job.isActive());
+                row.createCell(3).setCellValue(nullSafeToString(job.getDescription()));
+                row.createCell(4).setCellValue(nullSafeToString(job.getLocation()));
+                row.createCell(5).setCellValue(nullSafeToString(job.getTags()));
+                row.createCell(6).setCellValue(nullSafeToString(job.getDate()));
+                row.createCell(7).setCellValue(job.isActive());
             }
 
-            for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
 
             workbook.write(fos);
         } catch (IOException e) {
@@ -95,4 +103,3 @@ public class ExportExcelService {
         return obj == null ? "" : obj.toString();
     }
 }
-

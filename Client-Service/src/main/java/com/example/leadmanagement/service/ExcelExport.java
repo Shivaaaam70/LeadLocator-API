@@ -34,8 +34,10 @@ public class ExcelExport {
                 row.createCell(1).setCellValue(lead.getEmail());
                 row.createCell(2).setCellValue(lead.getLocation());
                 row.createCell(3).setCellValue(lead.getRequirement());
-                row.createCell(4).setCellValue(lead.getDescription());
-                row.createCell(5).setCellValue(lead.getBroughtBy());
+                row.createCell(4).setCellValue(lead.getStatus());
+                row.createCell(5).setCellValue(lead.getContact());
+                row.createCell(6).setCellValue(lead.getNote());
+                row.createCell(7).setCellValue(lead.getBroughtBy());
             }
 
             workbook.write(out);

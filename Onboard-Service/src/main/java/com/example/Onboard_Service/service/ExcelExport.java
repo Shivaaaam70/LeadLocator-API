@@ -51,10 +51,10 @@ public class ExcelExport {
                 row.createCell(4).setCellValue(onboard.getLocation());
                 row.createCell(5).setCellValue(onboard.getWorkplaceType());
                 row.createCell(6).setCellValue(onboard.getEmploymentType());
-                row.createCell(7).setCellValue(onboard.getField());
+                row.createCell(7).setCellValue(onboard.getRole());
                 row.createCell(8).setCellValue(onboard.getOnboarded_By());
                 row.createCell(9).setCellValue(onboard.getExperience());
-                row.createCell(10).setCellValue(onboard.getCompany_name());
+                row.createCell(10).setCellValue(onboard.getOnboard_company_name());
                 row.createCell(11).setCellValue(onboard.getSkills());
                 row.createCell(12).setCellValue(onboard.getStatus());
             }

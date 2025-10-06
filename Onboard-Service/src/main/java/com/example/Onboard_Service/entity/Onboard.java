@@ -22,11 +22,12 @@ public class Onboard {
     private String location;
     private String workplaceType;
     private String employmentType;
-    private String field;
+    private String role;
     private String onboarded_By;
     private int experience;
-    private String company_name;
+    private String onboard_company_name;
     private String skills;
     private String status;
+    private String resourceAvailability;
 
 }

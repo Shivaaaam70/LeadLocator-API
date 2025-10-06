@@ -3,7 +3,6 @@ package com.example.Company_Service.repository;
 import com.example.Company_Service.entity.Company;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository

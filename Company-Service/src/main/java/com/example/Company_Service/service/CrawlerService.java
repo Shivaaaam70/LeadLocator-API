@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,7 +27,7 @@ public class CrawlerService {
     @Value("${yc.api.hiring}")
     private String hiringCompaniesUrl;
 
-    private static final int BATCH_SIZE = 500; // adjust for performance
+    private static final int BATCH_SIZE = 500;
 
     public CrawlerService(WebClient.Builder builder, CompanyRepository repo, ObjectMapper objectMapper) {
         this.webClient = builder.build();
@@ -44,7 +43,7 @@ public class CrawlerService {
         boolean ok2 = crawlAndSave(topCompaniesUrl, upserts, true, false, errors);
         boolean ok3 = crawlAndSave(hiringCompaniesUrl, upserts, false, true, errors);
 
-        System.out.printf("✅ Crawl finished: %d companies inserted/updated, %d errors%n",
+        System.out.printf(" Crawl finished: %d companies inserted/updated, %d errors%n",
                 upserts.get(), errors.get());
 
         return ok1 && ok2 && ok3 && errors.get() == 0;
@@ -85,7 +84,7 @@ public class CrawlerService {
             return true;
 
         } catch (Exception e) {
-            System.err.printf("❌ Error fetching %s : %s%n", url, e.getMessage());
+            System.err.printf("Error fetching %s : %s%n", url, e.getMessage());
             errors.incrementAndGet();
             return false;
         }
@@ -95,12 +94,12 @@ public class CrawlerService {
         if (batch.isEmpty()) return;
 
         long t0 = System.currentTimeMillis();
-        int[][] results = repo.batchUpsert(batch); // ✅ insert new + update existing
+        int[][] results = repo.batchUpsert(batch);
         long took = System.currentTimeMillis() - t0;
 
         upserts.addAndGet(results.length);
 
-        System.out.printf("➡️ Flushed %d companies (inserted/updated) in %d ms%n",
+        System.out.printf("Flushed %d companies (inserted/updated) in %d ms%n",
                 batch.size(), took);
 
         batch.clear();

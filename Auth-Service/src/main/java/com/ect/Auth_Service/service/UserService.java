@@ -1,6 +1,7 @@
 package com.ect.Auth_Service.service;
 
 import com.ect.Auth_Service.entity.User;
+import com.ect.Auth_Service.exception.EmailAlreadyExistsException;
 import com.ect.Auth_Service.repo.PasswordResetTokenRepository;
 import com.ect.Auth_Service.repo.UserRepository;
 import com.ect.Auth_Service.util.JwtUtil;
@@ -33,8 +34,8 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findById(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id"));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email"));
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
@@ -43,6 +44,9 @@ public class UserService implements UserDetailsService {
     }
 
     public void register(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already registered");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }

@@ -25,21 +25,27 @@ public class OnboardService {
         return onboardRepository.findAll();
     }
 
-    public Onboard update(Long id,Onboard updatedOnboard){
-        Onboard existingOnboard=onboardRepository.findById(id).orElseThrow();
+    public Onboard update(Long id, Onboard updatedOnboard) {
+        Onboard existingOnboard = onboardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Onboard candidate not found with id: " + id));
+
         existingOnboard.setName(updatedOnboard.getName());
         existingOnboard.setEmail(updatedOnboard.getEmail());
         existingOnboard.setPhoneNo(updatedOnboard.getPhoneNo());
         existingOnboard.setLocation(updatedOnboard.getLocation());
+        existingOnboard.setRole(updatedOnboard.getRole());
         existingOnboard.setWorkplaceType(updatedOnboard.getWorkplaceType());
         existingOnboard.setEmploymentType(updatedOnboard.getEmploymentType());
         existingOnboard.setOnboarded_By(updatedOnboard.getOnboarded_By());
-        existingOnboard.setCompany_name(updatedOnboard.getCompany_name());
+        existingOnboard.setOnboard_company_name(updatedOnboard.getOnboard_company_name());
+        existingOnboard.setResourceAvailability(updatedOnboard.getResourceAvailability());
+        existingOnboard.setStatus(updatedOnboard.getStatus());
         existingOnboard.setExperience(updatedOnboard.getExperience());
         existingOnboard.setSkills(updatedOnboard.getSkills());
 
         return onboardRepository.save(existingOnboard);
     }
+
 
     public Void delete(Long id){
         onboardRepository.deleteById(id);

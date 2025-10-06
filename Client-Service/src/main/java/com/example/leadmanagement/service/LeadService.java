@@ -29,11 +29,13 @@ public class LeadService {
     public long getLeadCount(String broughtBy) {
         return leadRepository.countByBroughtBy(broughtBy);
     }
+
     // read by id
     public Lead getLeadById(String id) {
         return leadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lead not found with " + id));
     }
+
     //  Read all
     public List<Lead> getAllLead() {
         return leadRepository.findAll();
@@ -46,8 +48,13 @@ public class LeadService {
        exisitingLead.setName(leadDetails.getName());
        exisitingLead.setEmail(leadDetails.getEmail());
        exisitingLead.setLocation(leadDetails.getLocation());
-       exisitingLead.setDescription(leadDetails.getName());
+       exisitingLead.setNote(leadDetails.getNote());
        exisitingLead.setRequirement(leadDetails.getRequirement());
+       exisitingLead.setStatus(leadDetails.getStatus());
+       exisitingLead.setContact(leadDetails.getContact());
+       exisitingLead.setBroughtBy(leadDetails.getBroughtBy());
+
+
 
         return leadRepository.save(exisitingLead);
     }

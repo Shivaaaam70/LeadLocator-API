@@ -29,55 +29,85 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+
     // POST: /auth/register
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
-        if (user.getRole() == null) {
-            user.setRole("USER");
+    public ResponseEntity<?> register(@RequestBody User user) {
+        // Normalize inputs
+        if (user.getEmail() != null) {
+            user.setEmail(user.getEmail().trim().toLowerCase());
         }
+        if (user.getFirstName() != null) {
+            user.setFirstName(user.getFirstName().trim());
+        }
+        if (user.getLastName() != null) {
+            user.setLastName(user.getLastName().trim());
+        }
+        if (user.getFirstName() == null || user.getFirstName().isBlank() ||
+                user.getLastName() == null || user.getLastName().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "First name and last name are required"));
+        }
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password is required"));
+        }
+        if (user.getRole() == null || user.getRole().isBlank()) {
+            user.setRole("ROLE_USER");
+        }
+        // Ensure role has ROLE_ prefix
+        if (!user.getRole().startsWith("ROLE_")) {
+            user.setRole("ROLE_" + user.getRole());
+        }
+
         userService.register(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
-    // POST: /auth/login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
+            String email = request.getEmail() == null ? null : request.getEmail().trim().toLowerCase();
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
             );
 
-            // Generate JWT
-            String token = jwtUtil.generateToken(request.getEmail());
+            User user = userService.findByEmail(email);
+            String token = jwtUtil.generateToken(email);
 
-            // Fetch user details
-            User user = userService.findByEmail(request.getEmail());
-
-            // Build user response object
             Map<String, Object> userData = new HashMap<>();
-            userData.put("userId", user.getUserId());
-            userData.put("email", user.getEmail());
             userData.put("role", user.getRole());
-            userData.put("firstName", user.getFirstName());
-            userData.put("lastName", user.getLastName());
+            userData.put("email", user.getEmail());
+            userData.put("first_name", user.getFirstName());
+            userData.put("last_name", user.getLastName());
+            userData.put("token", token);
 
-            // Final response
             Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
-            response.put("user", userData);
+            response.put("data", userData);
+            response.put("message", "Login successful");
 
             return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid email or password"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Something went wrong"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid email or password"));
         }
+    }
+
+    private static Map<String, Object> getStringObjectMap(User user, String token) {
+        Map<String, Object> userData = new HashMap<>();
+
+        userData.put("role", user.getRole());
+        userData.put("email", user.getEmail());
+        userData.put("first_name", user.getFirstName());
+        userData.put("last_name", user.getLastName());
+        userData.put("token", token);
+
+        // Final response
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", userData);
+        response.put("message", "Login successful");
+        return response;
     }
 
     // POST /auth/forgot-password
