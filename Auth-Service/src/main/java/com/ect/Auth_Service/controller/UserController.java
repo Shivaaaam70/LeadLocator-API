@@ -12,7 +12,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +42,8 @@ public class UserController {
         if (user.getLastName() != null) {
             user.setLastName(user.getLastName().trim());
         }
+
+        // Validate required fields
         if (user.getFirstName() == null || user.getFirstName().isBlank() ||
                 user.getLastName() == null || user.getLastName().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("message", "First name and last name are required"));
@@ -53,17 +54,18 @@ public class UserController {
         if (user.getPassword() == null || user.getPassword().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Password is required"));
         }
+
+        //Role must be provided exactly as the user gives
         if (user.getRole() == null || user.getRole().isBlank()) {
-            user.setRole("ROLE_USER");
-        }
-        // Ensure role has ROLE_ prefix
-        if (!user.getRole().startsWith("ROLE_")) {
-            user.setRole("ROLE_" + user.getRole());
+            return ResponseEntity.badRequest().body(Map.of("message", "Role is required"));
         }
 
+        // Save user as-is without modifying role
         userService.register(user);
+
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {

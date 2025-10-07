@@ -57,11 +57,23 @@ public class JobsController {
     @GetMapping("/export")
     public ResponseEntity<InputStreamResource> exportJobs() {
         List<Jobs> jobs = jobService.getAllJobs();
-        ByteArrayInputStream in = exportExcelService.exportJobsToExcel(jobs);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=jobs.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(in));
+        if (jobs == null || jobs.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204 No Content
+        }
+
+        try {
+            ByteArrayInputStream in = exportExcelService.exportJobsToExcel(jobs);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=jobs.xlsx")
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(in));
+        } catch (Exception e) {
+            e.printStackTrace(); // Optional: remove later, but useful for debugging
+            return ResponseEntity.internalServerError().build();
+        }
     }
+
 }
